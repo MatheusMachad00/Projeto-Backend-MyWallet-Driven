@@ -22,7 +22,38 @@ app.post("/login", async (req, res) => {
     await mongoClient.connect();
     const db = mongoClient.db(process.env.DB_NAME);
 
+    const { email, password } = req.body
 
+    const loginSchema = joi.object({
+      email: joi.string().email().required(),
+      password: joi.string().required()
+    });
+
+    const { error } = loginSchema.validate(req.body);
+
+    if (error) {
+      return res.sendStatus(422);
+    }
+
+    const user = await db.collection('users').findOne({ email: email });
+    console.log(user, password, email);
+
+    if (user && bcrypt.compareSync(password, user.password)) {
+      const token = uuid();
+
+      await db.collection('sessions').insertOne({
+        token,
+        userId: user._id
+      });
+
+      res.status(201).send({ token });
+      mongoClient.close();
+      return;
+    } else {
+      res.status(401).send('Senha ou email incorretos!');
+      mongoClient.close();
+      return;
+    }
 
   } catch (error) {
     res.sendStatus(500);
@@ -47,19 +78,19 @@ app.post("/sign-up", async (req, res) => {
     const { error } = userSchema.validate(req.body);
 
     if (error) {
-      return res.status(422).send({errorMessage: "Houve problema com os dados enviados"});
+      return res.status(422).send({ errorMessage: "Houve problema com os dados enviados" });
     }
 
-    const checkEmailOnDB = await db.collection('users').findOne({email: email});
+    const checkEmailOnDB = await db.collection('users').findOne({ email: email });
 
-    if(checkEmailOnDB){
-      return res.status(409).send({errorMessage: "E-mail já cadastrado, tente outro email"});
+    if (checkEmailOnDB) {
+      return res.status(409).send({ errorMessage: "E-mail já cadastrado, tente outro email" });
     }
 
     const encryptedPassword = bcrypt.hashSync(password, 10);
-    
+
     await db.collection('users').insertOne({ ...req.body, password: encryptedPassword });
-    res.status(201).send({message: 'Usuário criado com sucesso'});
+    res.status(201).send({ message: 'Usuário criado com sucesso' });
     mongoClient.close();
 
   } catch (error) {
