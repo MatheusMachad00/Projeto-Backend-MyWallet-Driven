@@ -19,7 +19,6 @@ export async function userLogin (req, res) {
     }
 
     const user = await db.collection('users').findOne({ email: loginData.email });
-    /* console.log(user, password, email); */
 
     if (user && bcrypt.compareSync(loginData.password, user.password)) {
       const token = uuid();

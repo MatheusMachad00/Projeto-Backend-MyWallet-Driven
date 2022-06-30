@@ -9,12 +9,12 @@ export async function activityStatement (req, res) {
     console.log(token)
 
     
-    const session = await db.collections("sessions").findOne({ token });
+    const session = await db.collection("sessions").findOne({ token });
     console.log(session)
 
     if (!session) return res.sendStatus(404);
 
-    const user = await db.collections("users").findOne({_id: session.userId })
+    const user = await db.collection("users").findOne({_id: session.userId })
     console.log(user)
 
 
