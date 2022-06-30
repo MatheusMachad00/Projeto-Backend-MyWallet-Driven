@@ -5,10 +5,7 @@ import joi from "joi";
 
 export async function userLogin (req, res) {
   try {
-    /* await mongoClient.connect();
-    const db = mongoClient.db(process.env.DB_NAME); */
-
-    const { email, password } = req.body
+    const loginData = req.body
 
     const loginSchema = joi.object({
       email: joi.string().email().required(),
@@ -21,10 +18,10 @@ export async function userLogin (req, res) {
       return res.sendStatus(422);
     }
 
-    const user = await db.collection('users').findOne({ email: email });
-    console.log(user, password, email);
+    const user = await db.collection('users').findOne({ email: loginData.email });
+    /* console.log(user, password, email); */
 
-    if (user && bcrypt.compareSync(password, user.password)) {
+    if (user && bcrypt.compareSync(loginData.password, user.password)) {
       const token = uuid();
 
       await db.collection('sessions').insertOne({
@@ -46,10 +43,7 @@ export async function userLogin (req, res) {
 
 export async function userSignup (req, res) {
   try {
-    /* await mongoClient.connect();
-    const db = mongoClient.db(process.env.DB_NAME); */
-
-    const { name, email, password } = req.body;
+    const signUpData = req.body;
 
     const userSchema = joi.object({
       name: joi.string().min(1).required(),
@@ -57,21 +51,21 @@ export async function userSignup (req, res) {
       password: joi.string().required()
     });
 
-    const { error } = userSchema.validate(req.body);
+    const { error } = userSchema.validate(signUpData);
 
     if (error) {
       return res.status(422).send({ errorMessage: "Houve problema com os dados enviados" });
     }
 
-    const checkEmailOnDB = await db.collection('users').findOne({ email: email });
+    const checkEmailOnDB = await db.collection('users').findOne({ email: signUpData.email });
 
     if (checkEmailOnDB) {
       return res.status(409).send({ errorMessage: "E-mail já cadastrado, tente outro email" });
     }
 
-    const encryptedPassword = bcrypt.hashSync(password, 10);
+    const encryptedPassword = bcrypt.hashSync(signUpData.password, 10);
 
-    await db.collection('users').insertOne({ ...req.body, password: encryptedPassword });
+    await db.collection('users').insertOne({ ...signUpData, password: encryptedPassword });
     res.status(201).send({ message: 'Usuário criado com sucesso' });
 
   } catch (error) {

@@ -13,11 +13,11 @@ app.post("/login", userLogin );
 
 app.post("/sign-up", userSignup);
 
-app.get("/activity/:userId", activityStatement);
+app.get("/activity", activityStatement);
 
 app.post("/in", activityIn);
 
-app.post("/out", activityIn);
+app.post("/out", activityOut);
 
 app.listen(5000, () => {
   console.log(
