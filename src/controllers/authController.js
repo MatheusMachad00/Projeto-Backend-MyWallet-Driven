@@ -10,17 +10,13 @@ export async function userLogin(req, res) {
     if (user && bcrypt.compareSync(loginData.password, user.password)) {
       const token = uuid();
 
-      /* await db.collection('sessions').insertOne({
-        token,
-        userId: user._id
-      }); */
-console.log(user._id)
+console.log(user.name)
 
       await db.collection('users').updateOne({
         _id: user._id
       }, { $set: { session: token } });
 
-      return res.status(201).send({ token });
+      return res.status(201).send(token);
     } else {
       return res.status(401).send('Senha ou email incorretos!');
 
