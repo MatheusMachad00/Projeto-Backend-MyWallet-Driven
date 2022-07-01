@@ -1,32 +1,24 @@
 import bcrypt from 'bcrypt';
 import { v4 as uuid } from 'uuid';
 import db from '../database/db.js';
-import joi from "joi";
 
-export async function userLogin (req, res) {
+export async function userLogin(req, res) {
   try {
-    const loginData = req.body
-
-    const loginSchema = joi.object({
-      email: joi.string().email().required(),
-      password: joi.string().required()
-    });
-
-    const { error } = loginSchema.validate(req.body);
-
-    if (error) {
-      return res.sendStatus(422);
-    }
-
+    const loginData = res.locals.loginData;
     const user = await db.collection('users').findOne({ email: loginData.email });
 
     if (user && bcrypt.compareSync(loginData.password, user.password)) {
       const token = uuid();
 
-      await db.collection('sessions').insertOne({
+      /* await db.collection('sessions').insertOne({
         token,
         userId: user._id
-      });
+      }); */
+console.log(user._id)
+
+      await db.collection('users').updateOne({
+        _id: user._id
+      }, { $set: { session: token } });
 
       return res.status(201).send({ token });
     } else {
@@ -40,27 +32,9 @@ export async function userLogin (req, res) {
   }
 };
 
-export async function userSignup (req, res) {
+export async function userSignup(req, res) {
   try {
-    const signUpData = req.body;
-
-    const userSchema = joi.object({
-      name: joi.string().min(1).required(),
-      email: joi.string().email().required(),
-      password: joi.string().required()
-    });
-
-    const { error } = userSchema.validate(signUpData);
-
-    if (error) {
-      return res.status(422).send({ errorMessage: "Houve problema com os dados enviados" });
-    }
-
-    const checkEmailOnDB = await db.collection('users').findOne({ email: signUpData.email });
-
-    if (checkEmailOnDB) {
-      return res.status(409).send({ errorMessage: "E-mail já cadastrado, tente outro email" });
-    }
+    const signUpData = res.locals.signUpData;
 
     const encryptedPassword = bcrypt.hashSync(signUpData.password, 10);
 

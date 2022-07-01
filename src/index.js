@@ -1,15 +1,16 @@
 import express from 'express';
 import cors from 'cors';
 import chalk from 'chalk'
-import authRoute from "./routes/authRoute.js";
-import activityRoute from "./routes/activityRoute.js";
+import authRoute from "./routes/authRouter.js";
+import activityRoute from "./routes/activityRouter.js";
+import { validateToken } from './middlewares/validateToken.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 app.use(authRoute);
-app.use(activityRoute);
+app.use(validateToken, activityRoute);
 
 app.listen(5000, () => {
   console.log(

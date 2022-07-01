@@ -2,23 +2,12 @@ import db from '../database/db.js';
 
 export async function activityStatement (req, res) {
   try {
-    const { authorization } = req.headers;
-    const token = authorization?.replace("Bearer ", "").trim();
-
-    if(!token) return res.sendStatus(400);
-    console.log(token)
-
+    const userData = res.locals.userData;
     
-    const session = await db.collection("sessions").findOne({ token });
-    console.log(session)
-
-    if (!session) return res.sendStatus(404);
-
-    const user = await db.collection("users").findOne({_id: session.userId })
-    console.log(user)
-
-
-
+    const user = await db.collection("users").findOne({_id: userData._id })
+    /* const activity = await db.collection("users").findOne({ activity }) */
+    /* console.log(activity) */
+    res.send(user)
   } catch (error) {
     res.sendStatus(500);
     console.error(error);
@@ -27,15 +16,14 @@ export async function activityStatement (req, res) {
 
 export async function activityIn (req, res) {
   try {
-    const { authorization } = req.headers;
-    const token = authorization?.replace("Bearer ", "").trim();
+    const inOutData = res.locals.inOutData;
+    const userData = res.locals.userData;
 
-    if(!token) return res.sendStatus(400);
-    
-    const session = await db.collections("sessions").findOne({ token });
-    console.log(session)
+    await db.collection('users').updateOne({
+      _id: userData._id
+    }, { $push: { activity: [{...inOutData, type: 'in'}] } });
 
-    if (!session) return res.sendStatus(404);
+    res.status(201).send({message: "tudo ok"});
 
   } catch (error) {
     res.sendStatus(500);
