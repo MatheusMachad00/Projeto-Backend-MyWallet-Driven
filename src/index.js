@@ -12,7 +12,8 @@ app.use(express.json());
 app.use(authRoute);
 app.use(validateToken, activityRoute);
 
-app.listen(5000, () => {
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
   console.log(
     chalk.hex('#00ffff').bold("Server is running on: http://localhost:5000")
   );
